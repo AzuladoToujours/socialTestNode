@@ -1,6 +1,19 @@
+const _ = require('lodash')
 const Post = require('../models/post.models')
 const formidable = require('formidable')
 const fs = require('fs')
+
+exports.postById = (req, res, next, id) => {
+    Post.findById(id)
+    .populate("postedBy", '_id name')
+    .exec((err, post) => {
+        if(err || !post){
+            return res.status(400).json(err)
+        }
+        req.post = post //adds post object in req with the post info
+        next()
+    });
+};
 
 exports.getPosts = (req, res) => {
     const posts = Post.find()
@@ -50,4 +63,38 @@ exports.getPostsByUser = (req,res) => {
             }
             res.json(posts)
         });
+};
+
+
+exports.isPoster = (req, res, next) => {
+    /*If the post in the req exist, if the auth exist and if the id 
+    in the property postedBy matches the id of the auth*/
+
+    let isPoster = req.post && req.auth && req.post.postedBy._id == req.auth._id
+    if(!isPoster){
+        return res.status(403).json({ message: 'User is not authorized'})
+    }
+    next();
+};
+
+exports.deletePost = (req, res) => {
+    let post = req.post
+    post.remove((err, post) => {
+        if (err){
+            return res.status(400).json(err)
+        }
+        res.json({ message: 'Post deleted'});
+    });
+}
+
+exports.updatePost = (req, res, next) => {
+    let post = req.post
+    post = _.extend(post, req.body) // extend - mutate the source object
+    post.updated = Date.now()
+    post.save((err) => {
+        if(err){
+            return res.status(400).json(err)
+        }
+        res.json(post);
+    });
 };

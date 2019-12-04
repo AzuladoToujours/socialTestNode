@@ -12,7 +12,10 @@ exports.userById = (req, res, next, id) => {
 };
 
 exports.hasAuthorization = (req, res, next) => {
-    const authorized = req.profile && req.auth && req.profile._id === req.auth._id
+     /*If the profile in the req exist, if the auth exist and if the id 
+    in the profile matches the id of the auth*/
+
+    const authorized = req.profile && req.auth && req.profile._id == req.auth._id
     if(!authorized) {
         return res.status(403).json({ error: 'User is not authorized to perform this action'});
     }

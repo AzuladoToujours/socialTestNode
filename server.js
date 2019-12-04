@@ -9,6 +9,8 @@ const cookieParser = require('cookie-parser')
 const mongoose = require('mongoose')
 const expressValidator = require('express-validator')
 const dotenv = require('dotenv');
+const fs = require('fs')
+const cors = require('cors')
 dotenv.config()
 
 const {
@@ -36,9 +38,20 @@ app.use(morgan(morganMode))
 app.use(bodyParser.json());
 app.use(cookieParser());
 app.use(expressValidator());
+app.use(cors());
 app.use('/', postRouter)
 app.use('/', authRouter)
 app.use('/', userRouter)
+app.get('/', (req, res) => {
+    fs.readFile('docs/apiDocs.json', (err, data) =>{
+        if (err){
+            res.status(400).json(err)
+        }
+        const docs = JSON.parse(data);
+        res.json(docs);
+    })
+})
+
 app.use(function (err, req, res, next) {
     if (err.name === 'UnauthorizedError') {
       res.status(401).json({ message: 'Unauthorized!' });

@@ -21,7 +21,8 @@ const {
 
 
 const server = (app) => {
-    mongoose.connect(mongoDB, (err) => {
+    mongoose.connect(mongoDB, { useUnifiedTopology: true, useNewUrlParser: true}, 
+        (err) => {
         if (err) {
             return console.log('Error while connecting to database');
         }

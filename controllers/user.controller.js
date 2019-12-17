@@ -1,6 +1,7 @@
 const _ = require('lodash')
-const User = require("../models/user.models");
 
+const User = require("../models/user.models");
+//For any route containing the "userId" param
 exports.userById = (req, res, next, id) => {
     User.findById(id).exec((err, user) => {
         if(err || !user ){

@@ -5,7 +5,7 @@ const router = express.Router();
 
 
 router.get('/users', getAllUsers);
-router.get('/user/:userId', requireSignIn ,getUser);
+router.get('/user/:userId', requireSignIn , getUser);
 router.put('/user/:userId', requireSignIn, updateUser);
 router.delete('/user/:userId', requireSignIn, deleteUser);
 

@@ -52,10 +52,10 @@ app.get('/', (req, res) => {
         res.json(docs);
     })
 })
-
+//It has to be error to display the data.error in the frontend...
 app.use(function (err, req, res, next) {
     if (err.name === 'UnauthorizedError') {
-      res.status(401).json({ message: 'Unauthorized!' });
+      res.status(401).json({ error: 'Unauthorized!' });
     }
   });
 

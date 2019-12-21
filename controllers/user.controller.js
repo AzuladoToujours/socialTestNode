@@ -1,6 +1,9 @@
 const _ = require('lodash')
-
 const User = require("../models/user.models");
+const fs = require('fs')
+const formidable = require('formidable')
+
+
 //For any route containing the "userId" param
 exports.userById = (req, res, next, id) => {
     User.findById(id).exec((err, user) => {
@@ -40,7 +43,7 @@ exports.getUser = (req, res) => {
     return res.json(req.profile) 
 };
 
-exports.updateUser = (req, res, next) => {
+/*exports.updateUser = (req, res, next) => {
     let user = req.profile
     user = _.extend(user, req.body) // extend - mutate the source object
     user.updated = Date.now()
@@ -53,7 +56,38 @@ exports.updateUser = (req, res, next) => {
         res.json({user})
     });
 
-};
+};*/
+
+exports.updateUser = (req, res, next) => {
+    let form = new formidable.IncomingForm()
+    form.keepExtensions = true;
+    form.parse(req, (err, fields, files) =>{
+        if(err){
+            return res.status(400).json({ error: 'Photo could not be uploaded'})
+        }
+        //Save user
+        //If something changes, that will be available in the fields
+        let user = req.profile
+        user = _.extend(user, fields)
+        user.updated = Date.now()
+
+        //If a photo has been loaded
+        if (files.photo){
+            user.photo.data = fs.readFileSync(files.photo.path)
+            user.photo.contentType = files.photo.type
+        }
+
+        user.save((err, result) =>{
+            if(err){
+                return res.status(400).json({ error: err})
+            }
+
+        user.hashed_password = undefined;
+        user.salt = undefined; 
+        res.json(user)
+        })
+    })
+}
 
 exports.deleteUser = (req,res, next) => {
     let user = req.profile
@@ -63,4 +97,14 @@ exports.deleteUser = (req,res, next) => {
         }
         res.json({ message: `user ${user.name} has been deleted`})
     })
+}
+
+
+exports.userPhoto = (req, res, next) => {
+    if(req.profile.photo.data) {
+        res.set(("Content-Type", req.profile.photo.contentType))
+        return res.send(req.profile.photo.data)
+    }
+    
+    next();
 }

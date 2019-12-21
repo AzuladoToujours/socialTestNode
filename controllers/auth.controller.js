@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/user.models');
 const expressJwt = require('express-jwt');
+const fs = require('fs')
 require("dotenv").config();
 
 exports.signUp = async(req, res) => {
@@ -9,6 +10,8 @@ exports.signUp = async(req, res) => {
         error: "Email is taken!"
     });
     const user = await new User(req.body)
+    user.photo.data = fs.readFileSync('./images/avatar.jpg');
+    user.photo.contentType = 'jpg'
     await user.save()
     res.status(200).json({ message: "Signup Success" })
 };

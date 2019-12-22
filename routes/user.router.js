@@ -14,15 +14,15 @@ const { userById,
 const { requireSignIn } = require('../controllers/auth.controller')
 const router = express.Router();
 
-
-router.get('/users', getAllUsers);
-router.get('/user/:userId', requireSignIn, getUser);
-router.put('/user/:userId', requireSignIn, hasAuthorization, updateUser);
-router.delete('/user/:userId', requireSignIn, deleteUser);
 //Follow
 router.put('/user/follow', requireSignIn, addFollowing, addFollower);    
 //Unfollow
 router.put('/user/unfollow', requireSignIn, removeFollowing, removeFollower);
+router.get('/users', getAllUsers);
+router.get('/user/:userId', requireSignIn, getUser);
+router.put('/user/:userId', requireSignIn, hasAuthorization, updateUser);
+router.delete('/user/:userId', requireSignIn, deleteUser);
+
 //Photo
 router.get('/user/photo/:userId', userPhoto);
 

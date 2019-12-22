@@ -8,7 +8,8 @@ const formidable = require('formidable')
 exports.userById = (req, res, next, id) => {
     User.findById(id).exec((err, user) => {
         if(err || !user ){
-            res.status(400).json({ error: 'User not found ' })
+            //res.status(400).json({ error: 'User not found ' })
+            res.end()
         }
         req.profile = user //adds profile object in req with the user info
         next()

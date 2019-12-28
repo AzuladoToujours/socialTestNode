@@ -13,8 +13,8 @@ const { userById } = require('../controllers/user.controller');
 const validator = require('../validator/index')
 const router = express.Router() 
 
-router.get('/posts', requireSignIn ,getPosts);
 router.post('/post/new/:userId', requireSignIn , createPost, validator.createPostValidator);
+router.get('/posts', requireSignIn ,getPosts);
 router.get('/posts/by/:userId', requireSignIn, getPostsByUser)
 router.delete('/post/:postId', requireSignIn, isPoster, deletePost)
 router.put('/post/:postId', requireSignIn, isPoster, updatePost)

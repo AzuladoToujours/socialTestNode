@@ -15,12 +15,17 @@ exports.postById = (req, res, next, id) => {
     });
 };
 
+exports.getPost = (req, res) => {
+    return res.json(req.post)
+}
+
 exports.getPosts = (req, res) => {
     const posts = Post.find()
         .populate("postedBy", '_id name')
-        .select("_id title body")
+        .select("_id title body postedBy created")
+        .sort({ created: -1 })
         .then((posts) => {
-            res.json({ posts});
+            res.json(posts);
         })
         .catch( err => console.log(err));
 };
@@ -101,3 +106,14 @@ exports.updatePost = (req, res, next) => {
         res.json(post);
     });
 };
+
+exports.postPhoto = (req, res, next) => {
+    if(req.post.photo.data) {
+        res.set(("Content-Type", req.post.photo.contentType))
+        return res.send(req.post.photo.data)
+    }else{
+        return res.status(200)
+    }
+    
+    next();
+}

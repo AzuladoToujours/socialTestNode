@@ -8,7 +8,9 @@ const {
     deletePost, 
     updatePost,
     postPhoto,
-    getPost
+    getPost,
+    like,
+    unlike
 } = require ('../controllers/post.controller')
 const { requireSignIn } = require('../controllers/auth.controller')
 const { userById } = require('../controllers/user.controller');
@@ -18,6 +20,11 @@ const router = express.Router()
 //CRUD
 router.post('/post/new/:userId', requireSignIn , createPost, validator.createPostValidator);
 router.get('/posts' , getPosts);
+// Like
+router.put('/post/like', requireSignIn, like);
+//Unlike
+router.put('/post/unlike', requireSignIn, unlike);
+
 router.get('/post/:postId', getPost)
 router.get('/posts/by/:userId', requireSignIn, getPostsByUser)
 router.delete('/post/:postId', requireSignIn, isPoster, deletePost)
@@ -26,6 +33,8 @@ router.put('/post/:postId', requireSignIn, isPoster, updatePost)
 
 //Photo
 router.get('/post/photo/:postId', postPhoto);
+
+
 
 //any route containing :userId, our app will first execute userById()
 router.param("userId", userById)

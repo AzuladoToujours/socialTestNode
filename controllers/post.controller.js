@@ -1,8 +1,16 @@
+//To modify and mutate the models (Updates...)
 const _ = require('lodash')
 const Post = require('../models/post.models')
+//Manage the upcoming forms with a photo
 const formidable = require('formidable')
+//FilSystem to read the photo
 const fs = require('fs')
 
+//It needs next because we'll use another method then... 
+//we search the post with the id
+//We populate the postedBy with the id and the name of the user
+//We populate the comments values with the id and name of the comment's users
+//We select the id, title, body, created, likes, commments and the photo to store it in the req.
 exports.postById = (req, res, next, id) => {
     Post.findById(id)
     .populate('postedBy', '_id name')
@@ -18,10 +26,15 @@ exports.postById = (req, res, next, id) => {
     });
 };
 
+//Sends the Post in the req, the same req.post that we send in the postById method above.
 exports.getPost = (req, res) => {
     return res.json(req.post)
 }
 
+//Get all the posts
+//We populate the postedBy with the id and the name of the user
+//We populate the comments values with the id and name of the comment's users
+//We select the id, title, body, postedBy, likes to store it in the req.
 exports.getPosts = (req, res) => {
     const posts = Post.find()
         .populate("postedBy", '_id name')
@@ -35,25 +48,32 @@ exports.getPosts = (req, res) => {
         .catch( err => console.log(err));
 };
 
+//To create a post, we need the formidable to trate the form Data
 exports.createPost = (req, res, next) => {
     let form = new formidable.IncomingForm();
     form.keepExtensions = true;
+    //We parse whatever is in the request, we check if it's and error, we want the fields and we want the files.
     form.parse(req, (err, fields, files) => {
         if (err) {
             return res.status(400).json({
                 error: 'Image could not be uploaded'
             });
         }
+        //The post will be a new post with the upcoming fields from the request (fields is like the body)
         let post = new Post(fields);
 
+        //req.profile is the object that we added to the profile in the method userById in user.controller
         req.profile.hashed_password = undefined;
         req.profile.salt = undefined;
+        //Populate the value of postedBy in the post with the user
         post.postedBy = req.profile;
 
+        //Checks if the files has photos...
         if (files.photo) {
             post.photo.data = fs.readFileSync(files.photo.path);
             post.photo.contentType = files.photo.type;
         }
+        //Save the post and pass the result as a json...
         post.save((err, result) => {
             if (err) {
                 return res.status(400).json({
@@ -65,7 +85,10 @@ exports.createPost = (req, res, next) => {
     });
 };
 
-
+//Get the posts of the users..
+//populate the postedBy with the id and the name of the poster
+//Select what we want to send as a response
+//Sort by newest
 exports.getPostsByUser = (req,res) => {
         Post.find({ postedBy: req.profile._id})
         .populate("postedBy", '_id name')
@@ -91,6 +114,7 @@ exports.isPoster = (req, res, next) => {
     next();
 };
 
+//Get's the value of the post object in the req and executes the remove method...
 exports.deletePost = (req, res) => {
     let post = req.post
     post.remove((err, post) => {
@@ -113,6 +137,9 @@ exports.deletePost = (req, res) => {
 //     });
 // };
 
+
+//As same as the create post, we prepare the form to trate the form-data, we parse the req with the fields...
+//And we get the files..
 exports.updatePost = (req, res, next) => {
     let form = new formidable.IncomingForm()
     form.keepExtensions = true;
@@ -123,7 +150,9 @@ exports.updatePost = (req, res, next) => {
         //Save post
         //If something changes, that will be available in the fields
         let post = req.post
+        //With the ._extend we mutate the post with the fields in the form..
         post = _.extend(post, fields)
+        //We change the updated with the date...
         post.updated = Date.now()
 
         //If a photo has been loaded
@@ -141,6 +170,7 @@ exports.updatePost = (req, res, next) => {
     })
 }
 
+//get the post's photo, if the post doesn't have a photo, we also send a 200 to not show a 404 in the server... 
 exports.postPhoto = (req, res, next) => {
     if(req.post.photo.data) {
         res.set(("Content-Type", req.post.photo.contentType))
@@ -152,6 +182,10 @@ exports.postPhoto = (req, res, next) => {
     next();
 }
 
+
+//Updates the likes value in the Post, we first search the post (as we sended the postId and the userId as an argument in the body)
+//we push the user id to the likes value in the schema
+//We put it new:true because it will update a value
 exports.like = (req, res) => {
     Post.findByIdAndUpdate(req.body.postId, 
         {$push: {likes: req.body.userId}}, 
@@ -166,6 +200,9 @@ exports.like = (req, res) => {
         })
 }
 
+//Updates the likes value in the Post, we first search the post (as we sended the postId and the userId as an argument in the body)
+//we pull the user id to the likes value in the schema
+//We put it new:true because it will update a value
 exports.unlike = (req, res) => {
     Post.findByIdAndUpdate(req.body.postId, 
         {$pull: {likes: req.body.userId}}, 
@@ -179,6 +216,11 @@ exports.unlike = (req, res) => {
             }
         })
 }
+
+//Updates the comments value in the Post, we first search the post (as we sended the postId, comment and the userId as an argument in the body)
+//we push the comment to the comments value in the schema
+//We put it new:true because it will update a value
+//We populate the comments.postedBy value with the id and name of the user
 
 exports.comment = (req, res) => {
 
@@ -202,6 +244,12 @@ exports.comment = (req, res) => {
     
    
 }
+
+
+//Updates the comments value in the Post, we first search the post (as we sended the postId, comment and the userId as an argument in the body)
+//we pull the comment to the comments value in the schema
+//We put it new:true because it will update a value
+//We populate the comments.postedBy value with the id and name of the user
 
 exports.uncomment = (req, res) => {
     let comment = req.body.comment

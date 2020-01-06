@@ -4,6 +4,8 @@ const expressJwt = require('express-jwt');
 const fs = require('fs')
 require("dotenv").config();
 
+//Search if the user exist to change the response to error.
+//If it not exist, create a new user with the body in the req and a custom photo
 exports.signUp = async(req, res) => {
     const userExist = await User.findOne({email: req.body.email})
     if(userExist) return res.status(403).json({
@@ -39,6 +41,7 @@ exports.signIn = (req,res) => {
     });    
 };
 
+//Clears the token in the cookie
 exports.signOut = (req,res) => {
     res.clearCookie('t');
     return res.json({ message: 'Signout success'})

@@ -32,6 +32,7 @@ exports.hasAuthorization = (req, res, next) => {
     next()
 };
 
+//Get's all users with the selected information
 exports.getAllUsers = (req, res) => {
     User.find((err, users) => {
         if (err || !users){
@@ -64,6 +65,7 @@ exports.getUser = (req, res) => {
 
 };*/
 
+//To update an user, we need the formidable to trate the form Data
 exports.updateUser = (req, res, next) => {
     let form = new formidable.IncomingForm()
     form.keepExtensions = true;
@@ -74,7 +76,9 @@ exports.updateUser = (req, res, next) => {
         //Save user
         //If something changes, that will be available in the fields
         let user = req.profile
+        //whatever is in the req with the fields we mutate it
         user = _.extend(user, fields)
+        //Change the value of updated in the user model
         user.updated = Date.now()
 
         //If a photo has been loaded
@@ -95,6 +99,7 @@ exports.updateUser = (req, res, next) => {
     })
 }
 
+//Get's the user in the req, remove it...
 exports.deleteUser = (req,res, next) => {
     let user = req.profile
     user.remove((err, user) => {
@@ -105,7 +110,7 @@ exports.deleteUser = (req,res, next) => {
     })
 }
 
-
+//Get the photo of the user...
 exports.userPhoto = (req, res, next) => {
     if(req.profile.photo.data) {
         res.set(("Content-Type", req.profile.photo.contentType))
@@ -177,9 +182,13 @@ exports.removeFollower = (req, res) => {
     
 };
 
+//Method to findPeople to follow
 exports.findPeople = (req,res) => {
+    //We get the list of users that the user is following..
     let following = req.profile.following
+    //We push the authenticated user to the following array
     following.push(req.profile._id)
+    //We find in the schema User all the not included users in the following array...
     User.find({ _id: {$nin: following}}, (err, users)=> {
         if(err){
             return res.status(400).json({

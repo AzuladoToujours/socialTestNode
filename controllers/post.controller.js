@@ -15,7 +15,7 @@ exports.postById = (req, res, next, id) => {
     Post.findById(id)
     .populate('postedBy', '_id name')
     .populate('comments.postedBy', '_id name')
-    .populate('postedBy', '_id name')
+    .populate('postedBy', '_id name role')
     .select('_id title body created likes comments photo')
     .exec((err, post) => {
         if(err || !post){
@@ -35,17 +35,47 @@ exports.getPost = (req, res) => {
 //We populate the postedBy with the id and the name of the user
 //We populate the comments values with the id and name of the comment's users
 //We select the id, title, body, postedBy, likes to store it in the req.
-exports.getPosts = (req, res) => {
-    const posts = Post.find()
-        .populate("postedBy", '_id name')
-        .populate("comments", 'text created')
-        .populate("comments.postedBy", '_id name')
-        .select("_id title body postedBy created likes updated")
-        .sort({ created: -1 })
-        .then((posts) => {
-            res.json(posts);
+
+
+// exports.getPosts = (req, res) => {
+//     const posts = Post.find()
+//         .populate("postedBy", '_id name')
+//         .populate("comments", 'text created')
+//         .populate("comments.postedBy", '_id name')
+//         .select("_id title body postedBy created likes updated")
+//         .sort({ created: -1 })
+//         .then((posts) => {
+//             res.json(posts);
+//         })
+//         .catch( err => console.log(err));
+// };
+
+// with pagination
+exports.getPosts = async (req, res) => {
+    // get current page from req.query or use default value of 1
+    const currentPage = req.query.page || 1;
+    // return 3 posts per page
+    const perPage = 6;
+    let totalItems;
+
+    const posts = await Post.find()
+        // countDocuments() gives you total count of posts
+        .countDocuments()
+        .then(count => {
+            totalItems = count;
+            return Post.find()
+                .skip((currentPage - 1) * perPage)
+                .populate('comments', 'text created')
+                .populate('comments.postedBy', '_id name')
+                .populate('postedBy', '_id name')
+                .select('_id title body postedBy created likes updated')
+                .limit(perPage)
+                .sort({ created: -1 });
         })
-        .catch( err => console.log(err));
+        .then(posts => {
+            res.status(200).json(posts);
+        })
+        .catch(err => console.log(err));
 };
 
 //To create a post, we need the formidable to trate the form Data
@@ -106,8 +136,12 @@ exports.getPostsByUser = (req,res) => {
 exports.isPoster = (req, res, next) => {
     /*If the post in the req exist, if the auth exist and if the id 
     in the property postedBy matches the id of the auth*/
-
-    let isPoster = req.post && req.auth && req.post.postedBy._id == req.auth._id
+    let isUserPoster = req.post && req.auth && req.post.postedBy._id == req.auth._id;
+      /*If the post in the req exist, if the auth exist and if the role in the auth
+      is admin*/
+    let isAdminUser = req.post && req.auth && req.auth.role === 'admin';
+    //Either isPoster will be the user that posted the post or the admin
+    let isPoster = isUserPoster || isAdminUser
     if(!isPoster){
         return res.status(403).json({ message: 'User is not authorized'})
     }

@@ -25,7 +25,9 @@ exports.hasAuthorization = (req, res, next) => {
      /*If the profile in the req exist, if the auth exist and if the id 
     in the profile matches the id of the auth*/
 
-    const authorized = req.profile && req.auth && req.profile._id == req.auth._id
+    let isSameUser = req.profile && req.auth && req.profile._id == req.auth._id
+    let isAdmin = req.profile && req.auth && req.auth.role === "admin"
+    const authorized = isSameUser || isAdmin
     if(!authorized) {
         return res.status(403).json({ error: 'User is not authorized to perform this action'});
     }
@@ -41,7 +43,7 @@ exports.getAllUsers = (req, res) => {
 
         res.json(users)
         
-    }).select('name email updated created');
+    }).select('name email updated created role');
 };
 
 exports.getUser = (req, res) => {

@@ -32,12 +32,12 @@ exports.signIn = (req,res) => {
             return res.status(404).json({ error: 'Email and password do not match'});
         }
         //Generate a token with the user id and the secret jwt
-        const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET);
+        const token = jwt.sign({ _id: user._id, role: user.role }, process.env.JWT_SECRET);
         //Persist the token as 't' in cookie with expiry date
         res.cookie('t', token, {expire: new Date() + 9999})
         //return response to client via frontend
-        const {_id, name, email} = user
-        return res.json({token, user: {_id, email, name}}); 
+        const {_id, name, email, role} = user
+        return res.json({token, user: {_id, email, name, role}}); 
     });    
 };
 

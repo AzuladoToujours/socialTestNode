@@ -24,7 +24,7 @@ router.put('/user/unfollow', requireSignIn, removeFollowing, removeFollower);
 router.get('/users', getAllUsers);
 router.get('/user/:userId', requireSignIn, getUser);
 router.put('/user/:userId', requireSignIn, hasAuthorization, updateUser);
-router.delete('/user/:userId', requireSignIn, deleteUser);
+router.delete('/user/:userId', requireSignIn, hasAuthorization, deleteUser);
 
 //Photo
 router.get('/user/photo/:userId', userPhoto);

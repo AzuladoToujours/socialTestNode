@@ -3,6 +3,7 @@ const User = require('../models/user.models');
 const expressJwt = require('express-jwt');
 const fs = require('fs')
 require("dotenv").config();
+const {sendEmail} = require('../helpers/helpers')
 
 //Search if the user exist to change the response to error.
 //If it not exist, create a new user with the body in the req and a custom photo
@@ -15,6 +16,14 @@ exports.signUp = async(req, res) => {
     user.photo.data = fs.readFileSync('./images/avatar.jpg');
     user.photo.contentType = 'jpg'
     await user.save()
+    // email data
+    const emailData = {
+        from: 'noreply@testing.com',
+        to: req.body.email,
+        subject: 'Welcome to my page',
+        text: `This is just a testing`
+    };
+    sendEmail(emailData);
     res.status(200).json({ message: "Signup Success" })
 };
 

@@ -43,7 +43,7 @@ exports.getAllUsers = (req, res) => {
 
         res.json(users)
         
-    }).select('name email updated created role');
+    }).select('name email updated created role resetPasswordLink');
 };
 
 exports.getUser = (req, res) => {

@@ -5,6 +5,8 @@ const expressJwt = require('express-jwt');
 const fs = require('fs')
 require("dotenv").config();
 const {sendEmail} = require('../helpers/helpers')
+const uuidv1 = require('uuid/v1');
+const crypto = require('crypto')
 
 //Search if the user exist to change the response to error.
 //If it not exist, create a new user with the body in the req and a custom photo
@@ -39,7 +41,8 @@ exports.signIn = (req,res) => {
         //User found, authenticate
         //If user is found, make sure email and password match
         if(!user.authenticate(password)){
-            return res.status(404).json({ error: 'Email and password do not match'});
+            //return res.status(404).json({ error: 'Email and password do not match'});
+            return res.status(404).json({ pass: user.encryptPassword(password)});
         }
         //Generate a token with the user id and the secret jwt
         const token = jwt.sign({ _id: user._id, role: user.role }, process.env.JWT_SECRET);
@@ -98,25 +101,26 @@ exports.forgotPassword = async(req,res) => {
 
 }
 
-exports.resetPassword = (req,res) => {
 
+
+exports.resetPassword = async (req, res) => {
     const {resetPasswordLink, newPassword} = req.body;
-    
-    User.findOne({ resetPasswordLink }, (err, user) => {
-        // if err or no user
-        if (err || !user)
+    try{
+        let user = await User.findOne({resetPasswordLink})
+        if (!user){
             return res.status(401).json({
                 error: 'Invalid Link!'
             });
-
+        }
+        
         const updatedFields = {
-            password: newPassword,
             resetPasswordLink: ''
         };
 
+        user.password = newPassword
         user = _.extend(user, updatedFields);
         user.updated = Date.now();
-
+        
         user.save((err, result) => {
             if (err) {
                 return res.status(400).json({
@@ -127,8 +131,12 @@ exports.resetPassword = (req,res) => {
                 message: `Great! Now you can login with your new password.`
             });
         });
-    });
-};
+    }catch(e){
+        console.log(e)
+        res.status(400).end()
+    }
+}
+
 
 
 exports.requireSignIn = expressJwt({
